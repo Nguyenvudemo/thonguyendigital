@@ -366,9 +366,59 @@ export default function App() {
   }, []);
 
   // Xử lý nộp form đăng ký
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setValidationError('');
+  // Thay thế đoạn code xử lý handleSubmit cũ bằng đoạn gửi API này:
+const handleSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+  setValidationError('');
+
+  if (!name.trim() || !phone.trim()) {
+    setValidationError('Vui lòng điền đầy đủ Họ tên và Số điện thoại.');
+    return;
+  }
+
+  setIsSubmitting(true);
+
+  // Đường dẫn Web App URL từ Google Apps Script của anh
+  const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyk8lB0s-9sqWFBSNrYNlvEyE9QUInoFd1aqg0TneSb6Z2HMbt7ZohktuJtQe0bAYuhtw/exec";
+
+  fetch(GOOGLE_SHEET_WEBAPP_URL, {
+    method: 'POST',
+    mode: 'no-cors', // Cần thiết để tránh lỗi CORS khi gọi chéo tên miền
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      name: name.trim(),
+      phone: phone.trim(),
+      niche: niche,
+      note: note.trim() || 'Không có ghi chú thêm'
+    })
+  })
+  .then(() => {
+    // Lưu tạm thời vào danh sách hiển thị trên giao diện của Landing Page
+    const newLead = {
+      id: 'lead-' + Date.now(),
+      name: name.trim(),
+      phone: phone.trim(),
+      niche: niche,
+      note: note.trim() || 'Không có ghi chú thêm',
+      timestamp: 'Vừa xong'
+    };
+    setLeads([newLead, ...leads]);
+    
+    setIsSubmitting(false);
+    setSubmitSuccess(true);
+    setName('');
+    setPhone('');
+    setNote('');
+  })
+  .catch((err) => {
+    console.error("Lỗi gửi dữ liệu:", err);
+    setValidationError("Có lỗi xảy ra khi gửi đăng ký. Vui lòng thử lại!");
+    setIsSubmitting(false);
+  });
+};
+
 
     // Kiểm tra tính hợp lệ đơn giản
     if (!name.trim()) {
