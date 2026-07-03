@@ -57,11 +57,16 @@ import avatarImage from './assets/images/tho_nguyen_avatar_1783039011260.jpg';
  *    Mặc định trang web sử dụng tông màu Slate tối giản kết hợp với dải màu Neon Cyan & Indigo 
  *    mang đậm chất "Digital AI". Anh có thể thay đổi các mã màu CSS/Tailwind trong CONFIG.theme.
  * 
- * 3. LIÊN KẾT GOOGLE FORM:
+ * 3. KẾT NỐI GOOGLE SHEETS TRỰC TIẾP (KHÔNG QUA GOOGLE FORM):
+ *    - Điền link Webhook Google Apps Script của anh vào trường `CONFIG.googleSheetsWebhookUrl`.
+ *    - Khi khách hàng nhấn gửi form, thông tin sẽ được đẩy thẳng về Google Sheet của anh ngay lập tức!
+ *    - Xem hướng dẫn chi tiết cách tạo script ở phần phản hồi chat.
+ * 
+ * 4. LIÊN KẾT GOOGLE FORM (TÙY CHỌN):
  *    Nếu anh có link Google Form, hãy điền vào `CONFIG.googleFormLink`. Khi đó, khi khách hàng
  *    nhấn Đăng ký, trang web sẽ lưu lại tại hệ thống nội bộ đồng thời dẫn khách đến form của anh.
  * 
- * 4. SỐ ĐIỆN THOẠI & ZALO:
+ * 5. SỐ ĐIỆN THOẠI & ZALO:
  *    Thay số điện thoại của anh trong `CONFIG.hotline`. Số này sẽ tự động liên kết với nút gọi điện
  *    và link nhắn tin Zalo nhanh.
  * =========================================================================
@@ -74,8 +79,9 @@ const CONFIG = {
   hotline: "098.6467.014",
   zaloLink: "https://zalo.me/0986467014", // Đường dẫn Zalo cá nhân (tự động mở cửa sổ chat)
   email: "contact@thonguyendigital.vn",
-  address: "Hà Nội, Việt Nam",
-  googleFormLink: "https://docs.google.com/spreadsheets/d/1Xoh8q1jN20JI-76q8i47-L_kkQ-YkBGydlajF4CGeZs/edit?usp=sharing", // Điền link Google Form của anh vào đây nếu có (ví dụ: "https://docs.google.com/forms/d/e/.../viewform")
+  address: "TP.HCM, Việt Nam",
+  googleFormLink: "", // Điền link Google Form của anh vào đây nếu có (ví dụ: "https://docs.google.com/forms/d/e/.../viewform")
+  googleSheetsWebhookUrl: "https://script.google.com/macros/s/AKfycbyOjDYu2WnAXDxTmx7Br9IaOZZG7Xz4O6e817KlFE9aG9h3AIFjLrnJO_HYDViv1wwqYA/exec", // ĐIỀN ĐƯỜNG DẪN WEBHOOK GOOGLE SHEETS CỦA ANH VÀO ĐÂY ĐỂ ĐẨY DATA TRỰC TIẾP LÊN SHEET (Xem hướng dẫn chi tiết bên dưới)
 
   // === MÀU SẮC CHỦ ĐẠO ===
   theme: {
@@ -283,6 +289,7 @@ const CONFIG = {
     fields: {
       name: "Họ và tên của bạn",
       phone: "Số điện thoại (Có Zalo)",
+      email: "Địa chỉ Email của bạn",
       niche: "Lĩnh vực kinh doanh",
       nicheOptions: [
         "Môi giới Bán Căn Hộ / Bất Động Sản",
@@ -308,6 +315,7 @@ interface Lead {
   id: string;
   name: string;
   phone: string;
+  email: string;
   niche: string;
   note: string;
   timestamp: string;
@@ -317,6 +325,7 @@ export default function App() {
   // Trạng thái cho form đăng ký
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [niche, setNiche] = useState(CONFIG.form.fields.nicheOptions[0]);
   const [note, setNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -347,6 +356,7 @@ export default function App() {
           id: 'lead-1',
           name: 'Nguyễn Văn Nam',
           phone: '091.2xx.x345',
+          email: 'nam.nguyen@gmail.com',
           niche: 'Môi giới Bán Căn Hộ / Bất Động Sản',
           note: 'Cần làm gấp Ladipage dự án mới tại Quận 2 để chạy ads tuần tới.',
           timestamp: 'Vừa xong'
@@ -355,6 +365,7 @@ export default function App() {
           id: 'lead-2',
           name: 'Phạm Thị Thúy Vy',
           phone: '097.8xx.x892',
+          email: 'vy.pham@gmail.com',
           niche: 'Chủ Shop Kinh Doanh Online (Thời trang, Mỹ phẩm...)',
           note: 'Muốn tối ưu lại trang bán hàng trị mụn cũ, tải trang quá chậm.',
           timestamp: '5 phút trước'
@@ -366,106 +377,92 @@ export default function App() {
   }, []);
 
   // Xử lý nộp form đăng ký
-  // Thay thế đoạn code xử lý handleSubmit cũ bằng đoạn gửi API này:
-const handleSubmit = (e: React.FormEvent) => {
-  e.preventDefault();
-  setValidationError('');
-
-  if (!name.trim() || !phone.trim()) {
-    setValidationError('Vui lòng điền đầy đủ Họ tên và Số điện thoại.');
-    return;
-  }
-
-  setIsSubmitting(true);
-
-  // Đường dẫn Web App URL từ Google Apps Script của anh
-  const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwx2GGIgbntH3Oknfo5KE3D2zE0wJdUfqBPiTNj_0Qk7tpVvhUMZM1t501lwLosjoBS_A/exec";
-
-  fetch(GOOGLE_SHEET_WEBAPP_URL, {
-    method: 'POST',
-    mode: 'no-cors', // Cần thiết để tránh lỗi CORS khi gọi chéo tên miền
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      name: name.trim(),
-      phone: phone.trim(),
-      niche: niche,
-      note: note.trim() || 'Không có ghi chú thêm'
-    })
-  })
-  .then(() => {
-    // Lưu tạm thời vào danh sách hiển thị trên giao diện của Landing Page
-    const newLead = {
-      id: 'lead-' + Date.now(),
-      name: name.trim(),
-      phone: phone.trim(),
-      niche: niche,
-      note: note.trim() || 'Không có ghi chú thêm',
-      timestamp: 'Vừa xong'
-    };
-    setLeads([newLead, ...leads]);
-    
-    setIsSubmitting(false);
-    setSubmitSuccess(true);
-    setName('');
-    setPhone('');
-    setNote('');
-  })
-  .catch((err) => {
-    console.error("Lỗi gửi dữ liệu:", err);
-    setValidationError("Có lỗi xảy ra khi gửi đăng ký. Vui lòng thử lại!");
-    setIsSubmitting(false);
-  });
-};
-
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setValidationError('');
 
     // Kiểm tra tính hợp lệ đơn giản
     if (!name.trim()) {
       setValidationError('Vui lòng nhập họ và tên của bạn.');
       return;
     }
-    if (!phone.trim()) {
-      setValidationError('Vui lòng nhập số điện thoại để tôi liên hệ.');
+    
+    // 1. Kiểm tra số điện thoại: phải bắt đầu bằng số 0 và có đúng 10 chữ số
+    const cleanPhone = phone.replace(/[^0-9]/g, '');
+    if (!cleanPhone.startsWith('0')) {
+      setValidationError('Số điện thoại không hợp lệ. Số điện thoại phải bắt đầu bằng số 0.');
       return;
     }
-    const phoneRegex = /^[0-9.]{9,12}$/;
-    const cleanPhone = phone.replace(/[^0-9]/g, '');
-    if (cleanPhone.length < 9 || cleanPhone.length > 12) {
-      setValidationError('Số điện thoại không hợp lệ. Vui lòng nhập từ 9 đến 12 chữ số.');
+    if (cleanPhone.length !== 10) {
+      setValidationError('Số điện thoại không hợp lệ. Số điện thoại phải chứa chính xác 10 chữ số.');
+      return;
+    }
+
+    // 2. Kiểm tra Email: phải chứa ký tự @
+    if (!email.trim()) {
+      setValidationError('Vui lòng nhập địa chỉ Email của bạn.');
+      return;
+    }
+    if (!email.includes('@')) {
+      setValidationError('Địa chỉ Email không hợp lệ. Email phải chứa ký tự "@" (Ví dụ: thonguyen@gmail.com).');
       return;
     }
 
     setIsSubmitting(true);
 
-    // Giả lập gửi API trong 1 giây
-    setTimeout(() => {
-      const newLead: Lead = {
-        id: 'lead-' + Date.now(),
-        name: name.trim(),
-        phone: phone.trim(),
-        niche: niche,
-        note: note.trim() || 'Không có ghi chú thêm',
-        timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' - Hôm nay'
-      };
+    const timestampStr = new Date().toLocaleString('vi-VN');
+    const newLead: Lead = {
+      id: 'lead-' + Date.now(),
+      name: name.trim(),
+      phone: phone.trim(),
+      email: email.trim(),
+      niche: niche,
+      note: note.trim() || 'Không có ghi chú thêm',
+      timestamp: timestampStr
+    };
 
-      const updatedLeads = [newLead, ...leads];
-      setLeads(updatedLeads);
-      localStorage.setItem('thonguyen_leads', JSON.stringify(updatedLeads));
+    // Nếu người dùng cấu hình googleSheetsWebhookUrl, chúng ta gửi trực tiếp đến Google Sheet
+    if (CONFIG.googleSheetsWebhookUrl) {
+      try {
+        const formData = new URLSearchParams();
+        formData.append('name', newLead.name);
+        formData.append('phone', newLead.phone);
+        formData.append('email', newLead.email);
+        formData.append('niche', newLead.niche);
+        formData.append('note', newLead.note);
+        formData.append('timestamp', newLead.timestamp);
 
-      setIsSubmitting(false);
-      setSubmitSuccess(true);
-
-      // Nếu có link Google Form, tự động mở ra ở tab mới sau khi hiển thị thành công
-      if (CONFIG.googleFormLink) {
-        window.open(CONFIG.googleFormLink, '_blank');
+        await fetch(CONFIG.googleSheetsWebhookUrl, {
+          method: 'POST',
+          mode: 'no-cors', // Sử dụng no-cors để tránh bị chặn bởi CORS preflight từ trình duyệt
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: formData.toString()
+        });
+      } catch (error) {
+        console.error("Lỗi khi gửi dữ liệu lên Google Sheet:", error);
       }
+    }
 
-      // Reset các trường
-      setName('');
-      setPhone('');
-      setNote('');
-    }, 1200);
+    // Lưu trữ cục bộ vào Lead Board để quản trị viên theo dõi trực tiếp
+    const updatedLeads = [newLead, ...leads];
+    setLeads(updatedLeads);
+    localStorage.setItem('thonguyen_leads', JSON.stringify(updatedLeads));
+
+    setIsSubmitting(false);
+    setSubmitSuccess(true);
+
+    // Nếu có link Google Form, tự động mở ra ở tab mới sau khi hiển thị thành công (nếu cấu hình)
+    if (CONFIG.googleFormLink) {
+      window.open(CONFIG.googleFormLink, '_blank');
+    }
+
+    // Reset các trường
+    setName('');
+    setPhone('');
+    setEmail('');
+    setNote('');
   };
 
   // Sao chép số hotline nhanh
@@ -1250,6 +1247,21 @@ const handleSubmit = (e: React.FormEvent) => {
                     />
                   </div>
 
+                  {/* Trường Địa chỉ Email */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block">
+                      {CONFIG.form.fields.email} <span className="text-red-400">*</span>
+                    </label>
+                    <input 
+                      type="email" 
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Ví dụ: thonguyen@gmail.com"
+                      className="w-full h-12 bg-slate-950 border border-slate-800 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 rounded-xl px-4 text-sm text-white placeholder:text-slate-600 outline-none transition-all"
+                    />
+                  </div>
+
                   {/* Trường Lĩnh vực kinh doanh */}
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block">
@@ -1329,11 +1341,12 @@ const handleSubmit = (e: React.FormEvent) => {
                   </div>
 
                   {/* Thông tin đăng ký nhận nhanh */}
-                  <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl max-w-sm mx-auto text-left space-y-1 text-xs">
+                  <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl max-w-sm mx-auto text-left space-y-1.5 text-xs">
                     <p className="text-slate-400 font-bold uppercase tracking-wider mb-2 text-center text-[10px] border-b border-slate-900 pb-1">Chi tiết phiếu tư vấn</p>
-                    <p className="text-slate-300"><span className="text-slate-500 font-medium">Họ & Tên:</span> {name || 'Khách hàng ẩn danh'}</p>
-                    <p className="text-slate-300"><span className="text-slate-500 font-medium">Lĩnh vực:</span> {niche}</p>
-                    <p className="text-slate-300"><span className="text-slate-500 font-medium">Điện thoại:</span> {phone}</p>
+                    <p className="text-slate-300"><span className="text-slate-500 font-medium">Họ & Tên:</span> {leads[0]?.name || 'Khách hàng ẩn danh'}</p>
+                    <p className="text-slate-300"><span className="text-slate-500 font-medium">Điện thoại:</span> <span className="font-mono text-cyan-400">{leads[0]?.phone}</span></p>
+                    <p className="text-slate-300"><span className="text-slate-500 font-medium">Email:</span> <span className="text-slate-300 font-mono">{leads[0]?.email}</span></p>
+                    <p className="text-slate-300"><span className="text-slate-500 font-medium">Lĩnh vực:</span> {leads[0]?.niche}</p>
                   </div>
 
                   <div className="space-y-3 pt-4">
@@ -1438,6 +1451,9 @@ const handleSubmit = (e: React.FormEvent) => {
                                 {copiedLeadId === l.id ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
                               </button>
                             </div>
+                            {l.email && (
+                              <p className="col-span-1 sm:col-span-2"><span className="text-slate-500 font-medium">Email:</span> <span className="font-mono text-slate-300">{l.email}</span></p>
+                            )}
                           </div>
 
                           <p className="text-slate-400 bg-slate-900/50 p-2 rounded border border-slate-900"><span className="text-slate-500 font-medium">Yêu cầu:</span> {l.note}</p>
