@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  
+  --color-brand-cyan: #3b82f6;
+  --color-brand-indigo: #2563eb;
+  --color-brand-slate: #050505;
+
+  /* Redefining slate colors to align with Bold Typography design (--bg: #050505, --surface: #111111, --border: #262626) */
+  --color-slate-950: #050505;
+  --color-slate-900: #111111;
+  --color-slate-800: #262626;
+  --color-slate-700: #404040;
+  --color-slate-400: #a3a3a3;
+  --color-slate-300: #d4d4d4;
+  --color-slate-200: #e5e5e5;
+  --color-slate-100: #ffffff;
+
+  /* Accent highlights */
+  --color-cyan-400: #3b82f6;
+  --color-cyan-500: #2563eb;
+  --color-indigo-400: #60a5fa;
+  --color-indigo-500: #3b82f6;
+  --color-indigo-600: #1d4ed8;
+  --color-purple-500: #3b82f6;
+  --color-purple-600: #2563eb;
+}
+
+/* Custom scrollbar and premium utility styles */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-sans);
+    background-color: #050505;
+    color: #ffffff;
+  }
+  
+  ::selection {
+    background-color: rgba(59, 130, 246, 0.3);
+    color: #ffffff;
+  }
+
+  /* Bold Typography specific display components */
+  h1, .bold-h1 {
+    font-family: var(--font-display) !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.05em !important; /* Emulates negative letter spacing */
+    line-height: 0.95 !important;
+    text-transform: uppercase !important;
+  }
+
+  h2, .bold-h2 {
+    font-family: var(--font-display) !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.03em !important;
+    line-height: 1.0 !important;
+    text-transform: uppercase !important;
+  }
+
+  h3, .bold-h3 {
+    font-family: var(--font-display) !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
+    text-transform: uppercase !important;
+  }
+}
+
+/* Left-border quote box accent from design */
+.story-box-accent {
+  border-left: 2px solid #3b82f6 !important;
+  padding-left: 24px !important;
+}
+
+/* Custom badge styling from design */
+.hero-tag-custom {
+  background: rgba(59, 130, 246, 0.1) !important;
+  color: #3b82f6 !important;
+  padding: 6px 12px !important;
+  border-radius: 4px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  border: 1px solid rgba(59, 130, 246, 0.2) !important;
+}
+
+/* Custom buttons styled with premium flat active states */
+.btn-bold-primary {
+  background-color: #3b82f6 !important;
+  color: #ffffff !important;
+  border-radius: 6px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.btn-bold-primary:hover {
+  background-color: #2563eb !important;
+  transform: translateY(-1px);
+}
+
+.glow-effect {
+  position: relative;
+}
+.glow-effect::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.glow-effect:hover::after {
+  opacity: 0.4;
+}
+
