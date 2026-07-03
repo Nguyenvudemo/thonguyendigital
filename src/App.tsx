@@ -75,7 +75,7 @@ const CONFIG = {
   zaloLink: "https://zalo.me/0986467014", // Đường dẫn Zalo cá nhân (tự động mở cửa sổ chat)
   email: "contact@thonguyendigital.vn",
   address: "Hà Nội, Việt Nam",
-  googleFormLink: "", // Điền link Google Form của anh vào đây nếu có (ví dụ: "https://docs.google.com/forms/d/e/.../viewform")
+  googleFormLink: "https://docs.google.com/spreadsheets/d/1Xoh8q1jN20JI-76q8i47-L_kkQ-YkBGydlajF4CGeZs", // Điền link Google Form của anh vào đây nếu có (ví dụ: "https://docs.google.com/forms/d/e/.../viewform")
 
   // === MÀU SẮC CHỦ ĐẠO ===
   theme: {
