@@ -81,7 +81,7 @@ const CONFIG = {
   email: "contact@thonguyendigital.vn",
   address: "TP.HCM, Việt Nam",
   googleFormLink: "", // Điền link Google Form của anh vào đây nếu có (ví dụ: "https://docs.google.com/forms/d/e/.../viewform")
-  googleSheetsWebhookUrl: "https://script.google.com/macros/s/AKfycbw1jPRAiHGVqNMYyp-injyOGm_JWV81VxgVTmUXmqyY7ukJnSrv6Rww0sfp8upU8WJK5A/exec", // ĐIỀN ĐƯỜNG DẪN WEBHOOK GOOGLE SHEETS CỦA ANH VÀO ĐÂY ĐỂ ĐẨY DATA TRỰC TIẾP LÊN SHEET (Xem hướng dẫn chi tiết bên dưới)
+  googleSheetsWebhookUrl: "https://script.google.com/macros/s/AKfycbwLt0MKy8QQYRw7S6tL4Ng2vtw6bCc7uyH-bNjrlUlnLdtbCZx-iqdCFd0B6A_2c8vKfA/exec", // ĐIỀN ĐƯỜNG DẪN WEBHOOK GOOGLE SHEETS CỦA ANH VÀO ĐÂY ĐỂ ĐẨY DATA TRỰC TIẾP LÊN SHEET (Xem hướng dẫn chi tiết bên dưới)
 
   // === MÀU SẮC CHỦ ĐẠO ===
   theme: {
